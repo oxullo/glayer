@@ -14,12 +14,15 @@ const int PB_DN_PIN = 19;
 const int LB_LED_PIN = 14;
 const int LB_COLLECTOR_PIN = 15;
 
+const int AMP_SHUTDOWN_PIN = 12;
+
 const int RFID_READER_IRQ_PIN = 0;
 
 const int VS1053_RESET = -1; // = 11;
 const int VS1053_MP3CS = 6;
 const int VS1053_XDCS = 10;
 const int VS1053_DREQ = 9;
+
 const int SDCARDCS = 5;
 
 typedef enum SystemState {
@@ -29,7 +32,6 @@ typedef enum SystemState {
     SYSSTATE_CARD_IDENTIFIED
 } SystemState;
 
-
 ArcadeButton button_up(PB_UP_PIN, LED_UP_PIN), button_down(PB_DN_PIN,
         LED_DN_PIN);
 
@@ -37,13 +39,12 @@ LightBarrier light_barrier(LB_LED_PIN, LB_COLLECTOR_PIN);
 
 RFIDReader rfid_reader(RFID_READER_IRQ_PIN);
 
-Adafruit_VS1053_FilePlayer player = Adafruit_VS1053_FilePlayer(
-        VS1053_RESET, VS1053_MP3CS, VS1053_XDCS, VS1053_DREQ, SDCARDCS);
+Adafruit_VS1053_FilePlayer player = Adafruit_VS1053_FilePlayer(VS1053_RESET,
+        VS1053_MP3CS, VS1053_XDCS, VS1053_DREQ, SDCARDCS);
 
 SystemState system_state = SYSSTATE_INIT;
 
 RFIDUid rfid_uid;
-
 
 void change_state(SystemState new_state)
 {
@@ -57,11 +58,18 @@ void change_state(SystemState new_state)
     }
 }
 
+void audio_set_enabled(bool enabled)
+{
+    digitalWrite(AMP_SHUTDOWN_PIN, enabled ? HIGH : LOW);
+}
+
 void setup()
 {
     Serial.begin(115200);
 
-    while (!Serial)
+    pinMode(AMP_SHUTDOWN_PIN, OUTPUT);
+
+    while (!Serial && millis() < 3000)
         ;
 
     button_up.begin();
@@ -69,21 +77,23 @@ void setup()
 
     if (!rfid_reader.begin()) {
         // TODO: handle
-        while(1);
+        while (1)
+            ;
     }
 
     rfid_reader.powerdown();
 
     if (!player.begin()) {
         // TODO: handle
-        while(1);
+        while (1)
+            ;
     }
     player.useInterrupt(VS1053_FILEPLAYER_PIN_INT);
-    player.setVolume(10, 10);
 
     if (!SD.begin(SDCARDCS)) {
         // TODO: handle
-        while(1);
+        while (1)
+            ;
     }
 }
 
@@ -104,14 +114,19 @@ void loop()
             }
             break;
 
-        case SYSSTATE_CARD_DETECTED:
-        {
-            bool result = rfid_reader.read_passive_uid(RFIDReader::BAUDRATE_106K_ISO14443A,
-                    &rfid_uid, 100);
+        case SYSSTATE_CARD_DETECTED: {
+            bool result = rfid_reader.read_passive_uid(
+                    RFIDReader::BAUDRATE_106K_ISO14443A, &rfid_uid, 100);
+
+            rfid_reader.powerdown();
 
             if (result) {
+                audio_set_enabled(true);
+
                 change_state(SYSSTATE_CARD_IDENTIFIED);
             } else if (!light_barrier.check_card()) {
+                audio_set_enabled(false);
+
                 change_state(SYSSTATE_WAIT_CARD);
             } else {
                 delay(500);
@@ -120,8 +135,7 @@ void loop()
             break;
         }
 
-        case SYSSTATE_CARD_IDENTIFIED:
-        {
+        case SYSSTATE_CARD_IDENTIFIED: {
             static uint32_t ts_last_card_check = 0;
 
             button_down.update();
@@ -129,6 +143,8 @@ void loop()
 
             if (millis() - 1000 > ts_last_card_check) {
                 if (!light_barrier.check_card()) {
+                    audio_set_enabled(false);
+
                     change_state(SYSSTATE_WAIT_CARD);
                 }
                 ts_last_card_check = millis();
