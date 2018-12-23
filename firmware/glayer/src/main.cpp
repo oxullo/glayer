@@ -1,11 +1,15 @@
 #include <Arduino.h>
 
 #include <Adafruit_VS1053.h>
+#include <SD.h>
 
 #include "UserInterface.h"
 #include "LightBarrier.h"
 #include "RFIDReader.h"
+#include "Sequencer.h"
 
+
+namespace {
 const int LB_LED_PIN = 14;
 const int LB_COLLECTOR_PIN = 15;
 
@@ -23,6 +27,8 @@ const int SDCARDCS = 5;
 const uint8_t AUDIO_VOLUME_INITIAL = 40;
 const uint8_t AUDIO_VOLUME_MIN = 10;
 const uint8_t AUDIO_VOLUME_MAX = 70;
+}
+
 
 typedef enum SystemState {
     SYSSTATE_INIT,
@@ -31,20 +37,20 @@ typedef enum SystemState {
     SYSSTATE_CARD_IDENTIFIED
 } SystemState;
 
+
 UserInterface ui;
+Sequencer sequencer;
 
 LightBarrier light_barrier(LB_LED_PIN, LB_COLLECTOR_PIN);
 
 RFIDReader rfid_reader(RFID_READER_IRQ_PIN);
+RFIDUid rfid_uid;
 
+uint8_t audio_volume = AUDIO_VOLUME_INITIAL;
 Adafruit_VS1053_FilePlayer player = Adafruit_VS1053_FilePlayer(VS1053_RESET,
         VS1053_MP3CS, VS1053_XDCS, VS1053_DREQ, SDCARDCS);
 
 SystemState system_state = SYSSTATE_INIT;
-
-RFIDUid rfid_uid;
-
-uint8_t audio_volume = AUDIO_VOLUME_INITIAL;
 
 
 void change_state(SystemState new_state)
@@ -110,6 +116,8 @@ void setup()
     if (!SD.begin(SDCARDCS)) {
         ui.set_fatal_error(3);
     }
+
+    sequencer.begin(&player);
 }
 
 void loop()
@@ -137,14 +145,30 @@ void loop()
             rfid_reader.powerdown();
 
             if (result) {
+                char buffer[18];
+
+                if (rfid_uid.length == 4) {
+                    sprintf(buffer, "%02x%02x%02x%02x", rfid_uid.uid[0],
+                            rfid_uid.uid[1], rfid_uid.uid[2], rfid_uid.uid[3]);
+                } else if (rfid_uid.length == 8) {
+                    sprintf(buffer, "%02x%02x%02x%02x%02x%02x%02x%02x",
+                            rfid_uid.uid[0], rfid_uid.uid[1], rfid_uid.uid[2],
+                            rfid_uid.uid[3], rfid_uid.uid[4], rfid_uid.uid[5],
+                            rfid_uid.uid[6], rfid_uid.uid[7]);
+                } else {
+                    // TODO: handle error
+                    delay(500);
+                    return;
+                }
+
                 audio_set_enabled(true);
 
-                player.stopPlaying();
-                player.startPlayingFile("a/track001.mp3");
+                sequencer.start(buffer);
                 change_state(SYSSTATE_CARD_IDENTIFIED);
             } else if (!light_barrier.check_card()) {
                 audio_set_enabled(false);
                 ui.reset();
+                sequencer.reset();
 
                 change_state(SYSSTATE_WAIT_CARD);
             } else {
@@ -176,11 +200,11 @@ void loop()
                     break;
 
                 case UserInterface::ACTION_NEXT_TRACK:
-                    Serial.println("Next track");
+                    sequencer.next();
                     break;
 
                 case UserInterface::ACTION_PREVIOUS_TRACK:
-                    Serial.println("Previous track");
+                    sequencer.previous();
                     break;
 
                 case UserInterface::ACTION_NONE:
@@ -192,6 +216,7 @@ void loop()
                 if (!light_barrier.check_card()) {
                     audio_set_enabled(false);
                     ui.reset();
+                    sequencer.reset();
 
                     change_state(SYSSTATE_WAIT_CARD);
                 }
