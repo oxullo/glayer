@@ -139,10 +139,12 @@ void loop()
             if (result) {
                 audio_set_enabled(true);
 
+                player.stopPlaying();
                 player.startPlayingFile("a/track001.mp3");
                 change_state(SYSSTATE_CARD_IDENTIFIED);
             } else if (!light_barrier.check_card()) {
                 audio_set_enabled(false);
+                ui.reset();
 
                 change_state(SYSSTATE_WAIT_CARD);
             } else {
@@ -189,6 +191,7 @@ void loop()
             if (millis() - 1000 > ts_last_card_check) {
                 if (!light_barrier.check_card()) {
                     audio_set_enabled(false);
+                    ui.reset();
 
                     change_state(SYSSTATE_WAIT_CARD);
                 }

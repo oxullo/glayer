@@ -40,6 +40,8 @@ ArcadeButton::Action ArcadeButton::update()
             ts_debounce_ = millis();
             last_state_ = current_state;
 
+            digitalWrite(led_pin_, !current_state);
+
             if (current_state == HIGH) {
                 if (millis() - LONGPRESS_THRESHOLD > ts_pressed_) {
                     return ACTION_RELEASED;
