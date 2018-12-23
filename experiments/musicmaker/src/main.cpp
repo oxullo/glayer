@@ -53,7 +53,7 @@
 #endif
 
 #define FILES_COUNT     5
-#define MAX_VOL_VALUE   20
+#define MAX_VOL_VALUE   60
 
 const char* files[] = {
     "track001.mp3",
