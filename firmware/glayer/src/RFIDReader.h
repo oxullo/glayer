@@ -8,6 +8,12 @@
 #ifndef SRC_RFIDREADER_H_
 #define SRC_RFIDREADER_H_
 
+typedef struct RFIDUid {
+    uint8_t uid[8];
+    uint8_t length;
+} RFIDUid;
+
+
 class RFIDReader {
 public:
     typedef enum Baudrate {
@@ -22,8 +28,7 @@ public:
 
     bool begin();
     uint32_t get_fw_version();
-    bool read_passive_uid(Baudrate baudrate, uint8_t * uid, uint8_t * uidLength,
-            uint16_t timeout = 1000);
+    bool read_passive_uid(Baudrate baudrate, RFIDUid *uid, uint16_t timeout = 1000);
     bool powerdown();
 
 private:

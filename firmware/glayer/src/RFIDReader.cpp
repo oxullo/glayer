@@ -72,8 +72,7 @@ uint32_t RFIDReader::get_fw_version()
     return response;
 }
 
-bool RFIDReader::read_passive_uid(Baudrate baudrate, uint8_t * uid,
-        uint8_t * uidLength, uint16_t timeout)
+bool RFIDReader::read_passive_uid(Baudrate baudrate, RFIDUid *uid, uint16_t timeout)
 {
     pn532_packetbuffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
     pn532_packetbuffer[1] = 1; // max 1 cards at once (we can set this to 2 later)
@@ -133,15 +132,15 @@ bool RFIDReader::read_passive_uid(Baudrate baudrate, uint8_t * uid,
 #endif
 
     /* Card appears to be Mifare Classic */
-    *uidLength = pn532_packetbuffer[12];
+    uid->length = pn532_packetbuffer[12];
 #ifdef MIFAREDEBUG
     Serial.print(F("UID:"));
 #endif
     for (uint8_t i = 0; i < pn532_packetbuffer[12]; i++) {
-        uid[i] = pn532_packetbuffer[13 + i];
+        uid->uid[i] = pn532_packetbuffer[13 + i];
 #ifdef MIFAREDEBUG
         Serial.print(F(" 0x"));
-        Serial.print(uid[i], HEX);
+        Serial.print(uid->uid[i], HEX);
 #endif
     }
 #ifdef MIFAREDEBUG

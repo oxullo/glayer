@@ -42,6 +42,8 @@ Adafruit_VS1053_FilePlayer player = Adafruit_VS1053_FilePlayer(
 
 SystemState system_state = SYSSTATE_INIT;
 
+RFIDUid rfid_uid;
+
 
 void change_state(SystemState new_state)
 {
@@ -104,11 +106,8 @@ void loop()
 
         case SYSSTATE_CARD_DETECTED:
         {
-            uint8_t buffer[8];
-            uint8_t uid_length;
-
             bool result = rfid_reader.read_passive_uid(RFIDReader::BAUDRATE_106K_ISO14443A,
-                    buffer, &uid_length, 100);
+                    &rfid_uid, 100);
 
             if (result) {
                 change_state(SYSSTATE_CARD_IDENTIFIED);
