@@ -20,6 +20,15 @@ ArcadeButton::ArcadeButton(int button_pin, int led_pin) :
 	pinMode(led_pin, OUTPUT);
 }
 
+void ArcadeButton::begin()
+{
+    digitalWrite(led_pin_, HIGH);
+    delay(50);
+    digitalWrite(led_pin_, LOW);
+    delay(100);
+    digitalWrite(led_pin_, HIGH);
+}
+
 ArcadeButton::Action ArcadeButton::update()
 {
     int current_state = digitalRead(button_pin_);

@@ -20,6 +20,7 @@ public:
 	    ACTION_RELEASED
 	} Action;
 
+	void begin();
 	Action update();
 
 private:
