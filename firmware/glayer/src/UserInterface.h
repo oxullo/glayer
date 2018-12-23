@@ -12,11 +12,19 @@
 
 class UserInterface {
 public:
+    typedef enum Action {
+        ACTION_NONE,
+        ACTION_PREVIOUS_TRACK,
+        ACTION_NEXT_TRACK,
+        ACTION_DECREASE_VOLUME,
+        ACTION_INCREASE_VOLUME
+    } Action;
+
     UserInterface();
 
     void begin();
     void reset();
-    void update();
+    UserInterface::Action update();
     void set_fatal_error(uint8_t error);
 
 private:

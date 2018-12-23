@@ -71,7 +71,6 @@ void setup()
     if (!rfid_reader.begin()) {
         ui.set_fatal_error(1);
     }
-
     rfid_reader.powerdown();
 
     if (!player.begin()) {
@@ -96,11 +95,13 @@ void loop()
             if (light_barrier.check_card()) {
                 change_state(SYSSTATE_CARD_DETECTED);
             } else {
+                // TODO: magic number
                 delay(1000);
             }
             break;
 
         case SYSSTATE_CARD_DETECTED: {
+            // TODO: magic number
             bool result = rfid_reader.read_passive_uid(
                     RFIDReader::BAUDRATE_106K_ISO14443A, &rfid_uid, 100);
 
@@ -115,6 +116,7 @@ void loop()
 
                 change_state(SYSSTATE_WAIT_CARD);
             } else {
+                // TODO: magic number
                 delay(500);
             }
 
@@ -123,9 +125,33 @@ void loop()
 
         case SYSSTATE_CARD_IDENTIFIED: {
             static uint32_t ts_last_card_check = 0;
+            static uint32_t ts_last_volume_change = 0;
 
-            ui.update();
+            UserInterface::Action action = ui.update();
 
+            switch (action) {
+                case UserInterface::ACTION_INCREASE_VOLUME:
+                case UserInterface::ACTION_DECREASE_VOLUME:
+                    // TODO: magic number
+                    if (millis() - 500 > ts_last_volume_change) {
+                        Serial.println("Volume change");
+                        ts_last_volume_change = millis();
+                    }
+                    break;
+
+                case UserInterface::ACTION_NEXT_TRACK:
+                    Serial.println("Next track");
+                    break;
+
+                case UserInterface::ACTION_PREVIOUS_TRACK:
+                    Serial.println("Previous track");
+                    break;
+
+                case UserInterface::ACTION_NONE:
+                    break;
+            }
+
+            // TODO: magic number
             if (millis() - 1000 > ts_last_card_check) {
                 if (!light_barrier.check_card()) {
                     audio_set_enabled(false);

@@ -15,7 +15,8 @@ namespace {
 }
 
 ArcadeButton::ArcadeButton() :
-	button_pin_(-1), led_pin_(-1), last_state_(-1), ts_last_action_(0)
+	button_pin_(-1), led_pin_(-1), last_state_(-1),
+	ts_debounce_(0), ts_pressed_(0)
 {
 }
 
@@ -23,6 +24,8 @@ void ArcadeButton::begin(int button_pin, int led_pin)
 {
     button_pin_ = button_pin;
     led_pin_ = led_pin;
+
+    last_state_ = HIGH;
 
     pinMode(button_pin, INPUT_PULLUP);
     pinMode(led_pin, OUTPUT);
@@ -32,18 +35,28 @@ ArcadeButton::Action ArcadeButton::update()
 {
     int current_state = digitalRead(button_pin_);
 
-    if (current_state != last_state_ && (millis() - DEBOUNCE_TIME > ts_last_action_)) {
-        ts_last_action_ = millis();
-        last_state_ = current_state;
+    if (millis() - DEBOUNCE_TIME > ts_debounce_) {
+        if (current_state != last_state_) {
+            ts_debounce_ = millis();
+            last_state_ = current_state;
 
-        return current_state == LOW ? ACTION_PRESSED : ACTION_RELEASED;
-    } else {
-        if (current_state == LOW && (millis() - LONGPRESS_THRESHOLD > ts_last_action_)) {
+            if (current_state == HIGH) {
+                if (millis() - LONGPRESS_THRESHOLD > ts_pressed_) {
+                    return ACTION_RELEASED;
+                } else {
+                    return ACTION_CLICKED;
+                }
+            } else {
+                ts_pressed_ = millis();
+                return ACTION_PRESSED;
+            }
+        } else if (current_state == LOW
+                && (millis() - LONGPRESS_THRESHOLD > ts_pressed_)) {
             return ACTION_LONGPRESS;
-        } else {
-            return ACTION_NONE;
         }
     }
+
+    return ACTION_NONE;
 }
 
 void ArcadeButton::set_led(bool on)

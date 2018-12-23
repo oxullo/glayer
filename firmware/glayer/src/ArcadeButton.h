@@ -15,6 +15,7 @@ public:
     typedef enum Action {
         ACTION_NONE,
         ACTION_PRESSED,
+        ACTION_CLICKED,
         ACTION_RELEASED,
         ACTION_LONGPRESS
     } Action;
@@ -29,7 +30,8 @@ private:
 	int button_pin_;
 	int led_pin_;
 	int last_state_;
-	uint32_t ts_last_action_;
+	uint32_t ts_debounce_;
+	uint32_t ts_pressed_;
 };
 
 #endif /* SRC_ARCADEBUTTON_H_ */
