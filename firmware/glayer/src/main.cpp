@@ -2,14 +2,9 @@
 
 #include <Adafruit_VS1053.h>
 
-#include "ArcadeButton.h"
+#include "UserInterface.h"
 #include "LightBarrier.h"
 #include "RFIDReader.h"
-
-const int LED_UP_PIN = 16;
-const int PB_UP_PIN = 17;
-const int LED_DN_PIN = 18;
-const int PB_DN_PIN = 19;
 
 const int LB_LED_PIN = 14;
 const int LB_COLLECTOR_PIN = 15;
@@ -32,8 +27,7 @@ typedef enum SystemState {
     SYSSTATE_CARD_IDENTIFIED
 } SystemState;
 
-ArcadeButton button_up(PB_UP_PIN, LED_UP_PIN), button_down(PB_DN_PIN,
-        LED_DN_PIN);
+UserInterface ui;
 
 LightBarrier light_barrier(LB_LED_PIN, LB_COLLECTOR_PIN);
 
@@ -67,33 +61,26 @@ void setup()
 {
     Serial.begin(115200);
 
+    ui.begin();
+
     pinMode(AMP_SHUTDOWN_PIN, OUTPUT);
 
     while (!Serial && millis() < 3000)
         ;
 
-    button_up.begin();
-    button_down.begin();
-
     if (!rfid_reader.begin()) {
-        // TODO: handle
-        while (1)
-            ;
+        ui.set_fatal_error(1);
     }
 
     rfid_reader.powerdown();
 
     if (!player.begin()) {
-        // TODO: handle
-        while (1)
-            ;
+        ui.set_fatal_error(2);
     }
     player.useInterrupt(VS1053_FILEPLAYER_PIN_INT);
 
     if (!SD.begin(SDCARDCS)) {
-        // TODO: handle
-        while (1)
-            ;
+        ui.set_fatal_error(3);
     }
 }
 
@@ -101,8 +88,7 @@ void loop()
 {
     switch (system_state) {
         case SYSSTATE_INIT:
-            button_down.update();
-            button_up.update();
+            ui.reset();
             change_state(SYSSTATE_WAIT_CARD);
             break;
 
@@ -138,8 +124,7 @@ void loop()
         case SYSSTATE_CARD_IDENTIFIED: {
             static uint32_t ts_last_card_check = 0;
 
-            button_down.update();
-            button_up.update();
+            ui.update();
 
             if (millis() - 1000 > ts_last_card_check) {
                 if (!light_barrier.check_card()) {

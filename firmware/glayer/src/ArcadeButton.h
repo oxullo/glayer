@@ -12,16 +12,18 @@
 
 class ArcadeButton {
 public:
-	ArcadeButton(int button_pin, int led_pin);
+    typedef enum Action {
+        ACTION_NONE,
+        ACTION_PRESSED,
+        ACTION_RELEASED,
+        ACTION_LONGPRESS
+    } Action;
 
-	typedef enum Action {
-	    ACTION_NONE,
-	    ACTION_PRESSED,
-	    ACTION_RELEASED
-	} Action;
+	ArcadeButton();
 
-	void begin();
+	void begin(int button_pin, int led_pin);
 	Action update();
+	void set_led(bool on);
 
 private:
 	int button_pin_;

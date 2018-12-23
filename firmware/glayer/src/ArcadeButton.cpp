@@ -11,36 +11,42 @@
 
 namespace {
     const uint32_t DEBOUNCE_TIME = 80;
+    const uint32_t LONGPRESS_THRESHOLD = 1500;
 }
 
-ArcadeButton::ArcadeButton(int button_pin, int led_pin) :
-	button_pin_(button_pin), led_pin_(led_pin), last_state_(-1), ts_last_action_(0)
+ArcadeButton::ArcadeButton() :
+	button_pin_(-1), led_pin_(-1), last_state_(-1), ts_last_action_(0)
 {
-	pinMode(button_pin, INPUT_PULLUP);
-	pinMode(led_pin, OUTPUT);
 }
 
-void ArcadeButton::begin()
+void ArcadeButton::begin(int button_pin, int led_pin)
 {
-    digitalWrite(led_pin_, HIGH);
-    delay(50);
-    digitalWrite(led_pin_, LOW);
-    delay(100);
-    digitalWrite(led_pin_, HIGH);
+    button_pin_ = button_pin;
+    led_pin_ = led_pin;
+
+    pinMode(button_pin, INPUT_PULLUP);
+    pinMode(led_pin, OUTPUT);
 }
 
 ArcadeButton::Action ArcadeButton::update()
 {
     int current_state = digitalRead(button_pin_);
 
-    if (current_state != last_state_ && millis() - DEBOUNCE_TIME > ts_last_action_) {
+    if (current_state != last_state_ && (millis() - DEBOUNCE_TIME > ts_last_action_)) {
         ts_last_action_ = millis();
         last_state_ = current_state;
 
-        digitalWrite(led_pin_, !current_state);
-
         return current_state == LOW ? ACTION_PRESSED : ACTION_RELEASED;
     } else {
-        return ACTION_NONE;
+        if (current_state == LOW && (millis() - LONGPRESS_THRESHOLD > ts_last_action_)) {
+            return ACTION_LONGPRESS;
+        } else {
+            return ACTION_NONE;
+        }
     }
+}
+
+void ArcadeButton::set_led(bool on)
+{
+    digitalWrite(led_pin_, on ? HIGH : LOW);
 }
