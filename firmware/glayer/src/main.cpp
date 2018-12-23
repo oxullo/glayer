@@ -20,6 +20,10 @@ const int VS1053_DREQ = 9;
 
 const int SDCARDCS = 5;
 
+const uint8_t AUDIO_VOLUME_INITIAL = 40;
+const uint8_t AUDIO_VOLUME_MIN = 10;
+const uint8_t AUDIO_VOLUME_MAX = 70;
+
 typedef enum SystemState {
     SYSSTATE_INIT,
     SYSSTATE_WAIT_CARD,
@@ -40,6 +44,9 @@ SystemState system_state = SYSSTATE_INIT;
 
 RFIDUid rfid_uid;
 
+uint8_t audio_volume = AUDIO_VOLUME_INITIAL;
+
+
 void change_state(SystemState new_state)
 {
     if (new_state != system_state) {
@@ -55,6 +62,28 @@ void change_state(SystemState new_state)
 void audio_set_enabled(bool enabled)
 {
     digitalWrite(AMP_SHUTDOWN_PIN, enabled ? HIGH : LOW);
+}
+
+void audio_change_volume(int8_t offset)
+{
+    if (offset < 0) {
+        if (audio_volume - AUDIO_VOLUME_MIN > -offset) {
+            audio_volume += offset;
+        } else {
+            audio_volume = AUDIO_VOLUME_MIN;
+        }
+    } else {
+        if (AUDIO_VOLUME_MAX - audio_volume > offset) {
+            audio_volume += offset;
+        } else {
+            audio_volume = AUDIO_VOLUME_MAX;
+        }
+    }
+
+    Serial.print("Setting volume level to: ");
+    Serial.println(audio_volume);
+
+    player.setVolume(audio_volume, audio_volume);
 }
 
 void setup()
@@ -110,6 +139,7 @@ void loop()
             if (result) {
                 audio_set_enabled(true);
 
+                player.startPlayingFile("a/track001.mp3");
                 change_state(SYSSTATE_CARD_IDENTIFIED);
             } else if (!light_barrier.check_card()) {
                 audio_set_enabled(false);
@@ -133,8 +163,12 @@ void loop()
                 case UserInterface::ACTION_INCREASE_VOLUME:
                 case UserInterface::ACTION_DECREASE_VOLUME:
                     // TODO: magic number
-                    if (millis() - 500 > ts_last_volume_change) {
-                        Serial.println("Volume change");
+                    if (millis() - 100 > ts_last_volume_change) {
+                        if (action == UserInterface::ACTION_INCREASE_VOLUME) {
+                            audio_change_volume(-1);
+                        } else {
+                            audio_change_volume(1);
+                        }
                         ts_last_volume_change = millis();
                     }
                     break;

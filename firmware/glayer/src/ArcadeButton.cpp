@@ -11,7 +11,7 @@
 
 namespace {
     const uint32_t DEBOUNCE_TIME = 80;
-    const uint32_t LONGPRESS_THRESHOLD = 1500;
+    const uint32_t LONGPRESS_THRESHOLD = 1200;
 }
 
 ArcadeButton::ArcadeButton() :
