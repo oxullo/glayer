@@ -48,6 +48,14 @@ void Sequencer::start(const char* folder)
         if (!entry || entries_count_ == 32) {
             break;
         }
+
+        if (strstr(entry.name(), ".MP3") == NULL) {
+            Serial.print("Skipping file: ");
+            Serial.println(entry.name());
+            entry.close();
+
+            continue;
+        }
         strcpy(files_map_[entries_count_], entry.name());
         ++entries_count_;
         entry.close();
@@ -61,7 +69,9 @@ void Sequencer::start(const char* folder)
         Serial.println(files_map_[i]);
     }
 
-    play_current();
+    if (entries_count_ != 0) {
+        play_current();
+    }
 }
 
 void Sequencer::next()
