@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include <Adafruit_VS1053.h>
+#include <Adafruit_TPA2016.h>
 #include <SD.h>
 
 #include "UserInterface.h"
@@ -14,6 +15,7 @@ const int LB_LED_PIN = 14;
 const int LB_COLLECTOR_PIN = 15;
 
 const int AMP_SHUTDOWN_PIN = 12;
+const int AMP_INITIAL_GAIN = 6;
 
 const int RFID_READER_IRQ_PIN = 0;
 
@@ -47,6 +49,7 @@ RFIDReader rfid_reader(RFID_READER_IRQ_PIN);
 RFIDUid rfid_uid;
 
 uint8_t audio_volume = AUDIO_VOLUME_INITIAL;
+Adafruit_TPA2016 audioamp = Adafruit_TPA2016();
 Adafruit_VS1053_FilePlayer player = Adafruit_VS1053_FilePlayer(VS1053_RESET,
         VS1053_MP3CS, VS1053_XDCS, VS1053_DREQ, SDCARDCS);
 
@@ -68,6 +71,12 @@ void change_state(SystemState new_state)
 void audio_set_enabled(bool enabled)
 {
     digitalWrite(AMP_SHUTDOWN_PIN, enabled ? HIGH : LOW);
+    if (enabled) {
+        delay(5);
+        audioamp.setAGCCompression(TPA2016_AGC_OFF);
+        audioamp.setReleaseControl(0);
+        audioamp.setGain(AMP_INITIAL_GAIN);
+    }
 }
 
 void audio_change_volume(int8_t offset)
@@ -102,6 +111,8 @@ void setup()
 
     while (!Serial && millis() < 3000)
         ;
+
+    audioamp.begin();
 
     if (!rfid_reader.begin()) {
         ui.set_fatal_error(1);
