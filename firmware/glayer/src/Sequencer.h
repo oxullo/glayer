@@ -20,6 +20,7 @@ public:
     bool start(const char *folder);
     void next();
     void previous();
+    void check();
 
 private:
     Adafruit_VS1053_FilePlayer *player_;

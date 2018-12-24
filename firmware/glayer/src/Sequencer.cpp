@@ -103,6 +103,14 @@ void Sequencer::previous()
     play_current();
 }
 
+void Sequencer::check()
+{
+    if (!player_->playingMusic) {
+        Serial.println(F("Track playback terminated"));
+        next();
+    }
+}
+
 void Sequencer::play_current()
 {
     char scratch_buffer[64];

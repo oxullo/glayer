@@ -221,6 +221,7 @@ void loop()
                     break;
 
                 case UserInterface::ACTION_NONE:
+                    sequencer.check();
                     break;
             }
 
