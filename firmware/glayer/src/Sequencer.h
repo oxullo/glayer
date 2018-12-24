@@ -17,7 +17,7 @@ public:
 
     void begin(Adafruit_VS1053_FilePlayer *player);
     void reset();
-    void start(const char *folder);
+    bool start(const char *folder);
     void next();
     void previous();
 

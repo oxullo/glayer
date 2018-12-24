@@ -163,7 +163,9 @@ void loop()
 
                 audio_set_enabled(true);
 
-                sequencer.start(buffer);
+                if (sequencer.start(buffer)) {
+                    ui.blink();
+                }
                 change_state(SYSSTATE_CARD_IDENTIFIED);
             } else if (!light_barrier.check_card()) {
                 audio_set_enabled(false);

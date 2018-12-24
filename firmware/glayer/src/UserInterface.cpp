@@ -59,6 +59,17 @@ UserInterface::Action UserInterface::update()
     }
 }
 
+void UserInterface::blink()
+{
+    left.set_led(true);
+    delay(50);
+    right.set_led(true);
+    delay(50);
+    left.set_led(false);
+    delay(50);
+    right.set_led(false);
+}
+
 void UserInterface::set_fatal_error(uint8_t error)
 {
     for (uint8_t j = 0 ; j < 5 ; ++j) {

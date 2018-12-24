@@ -25,6 +25,7 @@ public:
     void begin();
     void reset();
     UserInterface::Action update();
+    void blink();
     void set_fatal_error(uint8_t error);
 
 private:

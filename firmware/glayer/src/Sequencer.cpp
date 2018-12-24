@@ -28,7 +28,7 @@ void Sequencer::reset()
     entries_count_ = 0;
 }
 
-void Sequencer::start(const char* folder)
+bool Sequencer::start(const char* folder)
 {
     Serial.print(F("Selecting playback folder: "));
     Serial.println(folder);
@@ -71,6 +71,9 @@ void Sequencer::start(const char* folder)
 
     if (entries_count_ != 0) {
         play_current();
+        return true;
+    } else {
+        return false;
     }
 }
 
