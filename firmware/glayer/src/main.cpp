@@ -86,7 +86,7 @@ void audio_change_volume(int8_t offset)
         }
     }
 
-    Serial.print("Setting volume level to: ");
+    Serial.print(F("Setting volume level to: "));
     Serial.println(audio_volume);
 
     player.setVolume(audio_volume, audio_volume);

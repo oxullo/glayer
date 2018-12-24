@@ -62,7 +62,7 @@ void Sequencer::start(const char* folder)
     }
     folder_root.close();
 
-    Serial.print("Entries count: ");
+    Serial.print(F("Entries count: "));
     Serial.println(entries_count_);
 
     for (uint8_t i = 0 ; i < entries_count_ ; ++i) {
@@ -81,6 +81,7 @@ void Sequencer::next()
     }
 
     current_track_ptr_ = (current_track_ptr_ + 1) % entries_count_;
+
     play_current();
 }
 
@@ -95,6 +96,7 @@ void Sequencer::previous()
     } else {
         --current_track_ptr_;
     }
+
     play_current();
 }
 
@@ -105,7 +107,7 @@ void Sequencer::play_current()
     sprintf(scratch_buffer, "%s/%s", current_folder_,
             files_map_[current_track_ptr_]);
 
-    Serial.print("Playing file: ");
+    Serial.print(F("Playing file: "));
     Serial.println(scratch_buffer);
 
     player_->stopPlaying();
