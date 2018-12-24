@@ -20,18 +20,18 @@ public:
         ACTION_LONGPRESS
     } Action;
 
-	ArcadeButton();
+    ArcadeButton();
 
-	void begin(int button_pin, int led_pin);
-	Action update();
-	void set_led(bool on);
+    void begin(int button_pin, int led_pin);
+    Action update();
+    void set_led(bool on);
 
 private:
-	int button_pin_;
-	int led_pin_;
-	int last_state_;
-	uint32_t ts_debounce_;
-	uint32_t ts_pressed_;
+    int button_pin_;
+    int led_pin_;
+    int last_state_;
+    uint32_t ts_debounce_;
+    uint32_t ts_pressed_;
 };
 
 #endif /* SRC_ARCADEBUTTON_H_ */
