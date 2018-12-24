@@ -49,8 +49,8 @@ void Sequencer::start(const char* folder)
             break;
         }
 
-        if (strstr(entry.name(), ".MP3") == NULL) {
-            Serial.print("Skipping file: ");
+        if (strstr(entry.name(), ".MP3") == NULL || entry.name()[0] == '_') {
+            Serial.print(F("Skipping file: "));
             Serial.println(entry.name());
             entry.close();
 
