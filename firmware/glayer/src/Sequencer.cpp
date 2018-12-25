@@ -105,7 +105,7 @@ void Sequencer::previous()
 
 void Sequencer::check()
 {
-    if (!player_->playingMusic) {
+    if (!player_->playingMusic && entries_count_) {
         Serial.println(F("Track playback terminated"));
         next();
     }
