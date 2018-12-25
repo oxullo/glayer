@@ -15,7 +15,7 @@ const int LB_LED_PIN = 14;
 const int LB_COLLECTOR_PIN = 15;
 
 const int AMP_SHUTDOWN_PIN = 12;
-const int AMP_INITIAL_GAIN = 6;
+const int AMP_LIMIT_LEVEL = 10;
 
 const int RFID_READER_IRQ_PIN = 0;
 
@@ -26,9 +26,9 @@ const int VS1053_DREQ = 9;
 
 const int SDCARDCS = 5;
 
-const uint8_t AUDIO_VOLUME_INITIAL = 40;
-const uint8_t AUDIO_VOLUME_MIN = 10;
-const uint8_t AUDIO_VOLUME_MAX = 70;
+const uint8_t AUDIO_VOLUME_INITIAL = 50;
+const uint8_t AUDIO_VOLUME_MIN = 15;
+const uint8_t AUDIO_VOLUME_MAX = 75;
 }
 
 
@@ -73,9 +73,9 @@ void audio_set_enabled(bool enabled)
     digitalWrite(AMP_SHUTDOWN_PIN, enabled ? HIGH : LOW);
     if (enabled) {
         delay(5);
-        audioamp.setAGCCompression(TPA2016_AGC_OFF);
+        audioamp.setAGCCompression(TPA2016_AGC_2);
+        audioamp.setAGCMaxGain(2);
         audioamp.setReleaseControl(0);
-        audioamp.setGain(AMP_INITIAL_GAIN);
     }
 }
 
