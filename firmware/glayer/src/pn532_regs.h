@@ -1,11 +1,4 @@
-/*
- * pn532_regs.h
- *
- *  Created on: 23 Dec 2018
- *      Author: xi
- */
-
-// Extracted from Adafruit PN532 library
+// Copied from Adafruit PN532 library
 // https://github.com/adafruit/Adafruit-PN532
 
 #ifndef SRC_PN532_REGS_H_
