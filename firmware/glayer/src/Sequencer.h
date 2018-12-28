@@ -10,6 +10,9 @@
 
 #include <Adafruit_VS1053.h>
 
+#define MAX_ENTRIES         32
+#define MAX_ENTRY_LENGTH    16
+
 
 class Sequencer {
 public:
@@ -24,12 +27,14 @@ public:
 
 private:
     Adafruit_VS1053_FilePlayer *player_;
-    char current_folder_[18];
-    char files_map_[32][16];
+    char current_folder_[MAX_ENTRY_LENGTH];
+    char files_map_[MAX_ENTRIES][MAX_ENTRY_LENGTH];
     uint8_t current_track_ptr_;
     uint8_t entries_count_;
 
     void play_current();
+    void load_entries(const char* folder);
+    void sort_entries();
 };
 
 #endif /* SRC_SEQUENCER_H_ */

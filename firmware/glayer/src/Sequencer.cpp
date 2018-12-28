@@ -5,8 +5,9 @@
  *      Author: xi
  */
 
-#include <Arduino.h>
+#include <string.h>
 
+#include <Arduino.h>
 #include <SD.h>
 
 #include "Sequencer.h"
@@ -36,31 +37,8 @@ bool Sequencer::start(const char* folder)
     strcpy(current_folder_, folder);
     current_track_ptr_ = 0;
 
-    File folder_root = SD.open(folder);
-
-    folder_root.rewindDirectory();
-
-    File entry;
-    entries_count_ = 0;
-    while(1) {
-        entry = folder_root.openNextFile();
-
-        if (!entry || entries_count_ == 32) {
-            break;
-        }
-
-        if (strstr(entry.name(), ".MP3") == NULL || entry.name()[0] == '_') {
-            Serial.print(F("Skipping file: "));
-            Serial.println(entry.name());
-            entry.close();
-
-            continue;
-        }
-        strcpy(files_map_[entries_count_], entry.name());
-        ++entries_count_;
-        entry.close();
-    }
-    folder_root.close();
+    load_entries(folder);
+    sort_entries();
 
     Serial.print(F("Entries count: "));
     Serial.println(entries_count_);
@@ -123,4 +101,52 @@ void Sequencer::play_current()
 
     player_->stopPlaying();
     player_->startPlayingFile(scratch_buffer);
+}
+
+void Sequencer::load_entries(const char* folder)
+{
+    File folder_root = SD.open(folder);
+    folder_root.rewindDirectory();
+
+    File entry;
+    entries_count_ = 0;
+
+    while (1) {
+        entry = folder_root.openNextFile();
+
+        if (!entry || entries_count_ == MAX_ENTRIES) {
+            break;
+        }
+
+        if (strstr(entry.name(), ".MP3") == NULL || entry.name()[0] == '_') {
+            Serial.print(F("Skipping file: "));
+            Serial.println(entry.name());
+        } else {
+            strcpy(files_map_[entries_count_], entry.name());
+            ++entries_count_;
+        }
+
+        entry.close();
+    }
+
+    folder_root.close();
+}
+
+void Sequencer::sort_entries()
+{
+    uint8_t swapped = 0;
+    char scratch_buffer[MAX_ENTRY_LENGTH];
+
+    do {
+        swapped = 0;
+        for (uint8_t i=1 ; i <= entries_count_ - 1 ; ++i) {
+            if (strcmp(files_map_[i-1], files_map_[i]) > 0) {
+                strcpy(scratch_buffer, files_map_[i]);
+                strcpy(files_map_[i], files_map_[i-1]);
+                strcpy(files_map_[i-1], scratch_buffer);
+
+                swapped = 1;
+            }
+        }
+    } while (swapped);
 }
