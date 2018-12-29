@@ -19,6 +19,7 @@ Revision A is composed of the following components:
 * Adafruit TPA2016 amplifier breakout
 * Seeed studio NFC grove (NXP PN532)
 * Adafruit Arcade button
+* Stereo Enclosed Speaker Set - 3W 4 Ohm
 * Light barrier (Vishay TCST2103)
 * DTP 2000mAh 3.7V LiPo battery
 * Mifare classic (ISO14443A) RFID transponder
