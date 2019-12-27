@@ -121,6 +121,16 @@ void audio_change_volume(int8_t offset)
     player.setVolume(audio_volume, audio_volume);
 }
 
+void play_jingle()
+{
+    Serial.print("Playing jingle..");
+    audio_set_enabled(true);
+    player.stopPlaying();
+    player.playFullFile("start.mp3");
+    Serial.println("..done.");
+    audio_set_enabled(false);
+}
+
 void setup()
 {
     Serial.begin(115200);
@@ -148,6 +158,8 @@ void setup()
     if (!SD.begin(SDCARDCS)) {
         ui.set_fatal_error(3);
     }
+
+    play_jingle();
 
     sequencer.begin(&player);
 }
