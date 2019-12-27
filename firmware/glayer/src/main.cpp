@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "RFIDReader.h"
 #include "Sequencer.h"
 
+// #define DEBUG
 
 namespace {
 const int LB_LED_PIN = 14;
@@ -128,8 +129,9 @@ void setup()
 
     pinMode(AMP_SHUTDOWN_PIN, OUTPUT);
 
-    while (!Serial && millis() < 3000)
-        ;
+#ifdef DEBUG
+    while (!Serial);
+#endif
 
     audioamp.begin();
 
