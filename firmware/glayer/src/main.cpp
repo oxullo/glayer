@@ -49,6 +49,10 @@ const int SDCARDCS = 5;
 const uint8_t AUDIO_VOLUME_INITIAL = 50;
 const uint8_t AUDIO_VOLUME_MIN = 15;
 const uint8_t AUDIO_VOLUME_MAX = 75;
+
+const uint32_t IDLE_NOTIFICATION_PERIOD = 30000;
+
+const uint32_t WAIT_CARD_POLL_DELAY = 200;
 }
 
 
@@ -74,6 +78,8 @@ Adafruit_VS1053_FilePlayer player = Adafruit_VS1053_FilePlayer(VS1053_RESET,
         VS1053_MP3CS, VS1053_XDCS, VS1053_DREQ, SDCARDCS);
 
 SystemState system_state = SYSSTATE_INIT;
+
+uint32_t ts_idle_timer = 0;
 
 
 void change_state(SystemState new_state)
@@ -176,8 +182,12 @@ void loop()
             if (light_barrier.check_card()) {
                 change_state(SYSSTATE_CARD_DETECTED);
             } else {
-                // TODO: magic number
-                delay(1000);
+                if (millis() - ts_idle_timer > IDLE_NOTIFICATION_PERIOD) {
+                    ui.blink();
+                    ts_idle_timer = millis();
+                } else {
+                    delay(WAIT_CARD_POLL_DELAY);
+                }
             }
             break;
 
@@ -216,6 +226,7 @@ void loop()
                 ui.reset();
                 sequencer.reset();
 
+                ts_idle_timer = millis();
                 change_state(SYSSTATE_WAIT_CARD);
             } else {
                 // TODO: magic number
