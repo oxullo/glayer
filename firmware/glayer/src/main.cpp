@@ -51,8 +51,6 @@ const uint8_t AUDIO_VOLUME_MIN = 15;
 const uint8_t AUDIO_VOLUME_MAX = 75;
 
 const uint32_t IDLE_NOTIFICATION_PERIOD = 30000;
-
-const uint32_t WAIT_CARD_POLL_DELAY = 200;
 }
 
 
@@ -186,7 +184,26 @@ void loop()
                     ui.blink();
                     ts_idle_timer = millis();
                 } else {
-                    delay(WAIT_CARD_POLL_DELAY);
+                    UserInterface::Action action = ui.update();
+
+                    switch (action) {
+                        case UserInterface::ACTION_INCREASE_VOLUME:
+                        case UserInterface::ACTION_DECREASE_VOLUME:
+                            break;
+
+                        case UserInterface::ACTION_NEXT_TRACK:
+                        case UserInterface::ACTION_PREVIOUS_TRACK:
+                            Serial.print("Playing idle..");
+                            audio_set_enabled(true);
+                            player.stopPlaying();
+                            player.playFullFile("idle.mp3");
+                            Serial.println("..done.");
+                            audio_set_enabled(false);
+                            break;
+
+                        case UserInterface::ACTION_NONE:
+                            break;
+                    }
                 }
             }
             break;
